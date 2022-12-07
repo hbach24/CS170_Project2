@@ -22,7 +22,7 @@ def main():
 
     if(search == '2'):
         searchName = "Backward Elimination"
-        backwardEliminationSearch(1)
+        backwardEliminationSearch(data)
 
 #REFERENCE: https://stackoverflow.com/questions/16448912/counting-number-of-columns-in-text-file-with-python
 def getData(file):
@@ -69,7 +69,7 @@ def forwardSelectionSearch(data):
 
             if(k not in currentFeatureSet): #don't add a feature that's already in the current feature set
                 print(f"--Considering adding the {k} feature.")
-                accuracy = leaveOneOutCrossValidation(data, currentFeatureSet, k)
+                accuracy = leaveOneOutCrossValidation(data, currentFeatureSet, k) #gets the accuracy if we were to add feature k to our current existing feature set
 
                 if(accuracy > bestAccuracy):
                     bestAccuracy = accuracy
@@ -84,7 +84,36 @@ def forwardSelectionSearch(data):
 
 
 def backwardEliminationSearch(data):
-    print("backward")
+    numFeatures = len(data[0])
+
+    currentFeatureSet = []
+    for k in range(1,numFeatures):
+        currentFeatureSet.append(k)
+    # print(currentFeatureSet)
+
+    for i in range(1,numFeatures): #disregard the first column since it's not a feature but a class
+        print(f"On the {i}th level of the search tree.")
+        featureToRemove = 0
+        bestAccuracy = 0
+        
+        for k in range(1,numFeatures):
+
+            if(k in currentFeatureSet): #check if a feature k is in the current feature set
+                print(f"--Considering removing the {k} feature.")
+                accuracy = leaveOneOutCrossValidation(data, currentFeatureSet, k)
+
+                if(accuracy > bestAccuracy):
+                    bestAccuracy = accuracy
+                    featureToRemove = k
+        
+#level 1: currentFeatureSet = [4] ; level 2: currentFeatureSet = [4,5] 
+            # feature = data[i][j]
+        print(f"On level {i}, I removed feature {featureToRemove} from the current feature set of {currentFeatureSet}.")    
+        currentFeatureSet.remove(featureToRemove)
+        print(f"Current Feature Set at this level {i} after removing {featureToRemove}:", currentFeatureSet, "\n")
+
+
+
 
 
 if __name__ == '__main__':
