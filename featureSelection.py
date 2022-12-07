@@ -10,8 +10,8 @@ def main():
     \nEnter '1' to use Forward Selection. \nEnter '2' to use Backward Elimination.\n")
     # search  = 0 #delete this later and uncomment lines 6&7
 
-    file = "Small_Data_6.txt"
-    # file = "Small_Data_88.txt"
+    # file = "Small_Data_6.txt"
+    file = "Small_Data_88.txt"
     # file = "Small_Data_96.txt"
     # file = "Large_Data_6.txt" #41 columns, 40 feature columns
     # file = "Large_Data_21.txt"
@@ -23,7 +23,7 @@ def main():
 
     if(search == '1'):
         searchName = "Forward Selection"
-        forwardSelectionSearch(data)
+        forwardSelectionSearch(data,file)
 
     if(search == '2'):
         searchName = "Backward Elimination"
@@ -99,17 +99,17 @@ def leaveOneOutCrossValidation(data, currentFeatureSet, featureToAdd, searchFlag
 
         if(classObjectToClassify == nearestNeighborLabel):
             numberCorrectlyClassified +=1
-    print(numberCorrectlyClassified)
+    # print(numberCorrectlyClassified)
     accuracy = numberCorrectlyClassified/numRows
     return accuracy
 
 
-def forwardSelectionSearch(data):
+def forwardSelectionSearch(data,file):
     numFeatures = len(data[0])
     # print(numFeatures-1)
 
     currentFeatureSet = []
-    bestFeatureSet = []
+    bestFeatureSetOverall = []
     bestFeatureSetAccuracy = float('-inf')
    
    #START SEARCH
@@ -126,19 +126,18 @@ def forwardSelectionSearch(data):
                 
                 if(accuracy > bestAccuracy):
                     bestAccuracy = accuracy
-                    print(bestAccuracy, "BEST")
                     featureToAdd = k
-            # if(bestAccuracy > bestFeatureSetAccuracy):
-            #     bestFeatureSet = currentFeatureSet.append(k)
-            #     bestFeatureSetAccuracy = bestAccuracy
-            #     print(f"The best feature set is {bestFeatureSet} with an accuracy of {bestFeatureSetAccuracy}.")
-        
-#level 1: currentFeatureSet = [4] ; level 2: currentFeatureSet = [4,5] 
-            # feature = data[i][j]
-        currentFeatureSet.append(featureToAdd)
+                    print(bestAccuracy, f"BEST at LEVEL {i}")
+
+        currentFeatureSet.append(featureToAdd) #<-- picks best feature set for each level
+
+        if(bestAccuracy > bestFeatureSetAccuracy): #<-- finds best feature set from all levels
+            bestFeatureSetOverall = copy.copy(currentFeatureSet)
+            bestFeatureSetAccuracy = bestAccuracy
+
         # print(f"On level {i}, I added feature {featureToAdd} to the current feature set.")
         # print(f"Current Feature Set at level {i}:", currentFeatureSet, "\n")
-    print(bestAccuracy, "BESSTTIE")
+    print(f"\nThe best feature set is {bestFeatureSetOverall} with an accuracy of {bestFeatureSetAccuracy} for dataset {file}.")
 
 
 def backwardEliminationSearch(data):
@@ -165,8 +164,6 @@ def backwardEliminationSearch(data):
                     featureToRemove = k
                     print(bestAccuracy, "BEST")
         
-#level 1: currentFeatureSet = [4] ; level 2: currentFeatureSet = [4,5] 
-            # feature = data[i][j]
         print(f"On level {i}, I removed feature {featureToRemove} from the current feature set of {currentFeatureSet}.")    
         currentFeatureSet.remove(featureToRemove)
         print(f"Current Feature Set at this level {i} after removing {featureToRemove}:", currentFeatureSet, "\n")
