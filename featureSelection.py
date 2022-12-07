@@ -1,6 +1,8 @@
 #Summary of the project: search through feature tree and find the set of feature(s) that provide the best accuracy
 import csv 
 import random
+import copy
+import math
 
 def main():
     print("Welcome to Hannah Bach's Feature Selection Algorithm.")
@@ -15,6 +17,9 @@ def main():
     # file = "Large_Data_21.txt"
     # file = "Large_Data_96.txt"
     data = getData(file)
+    # numRows = len(data)
+    # numFeat = len(data[0])-1
+    # print("numRows:", numRows, ", numFeat:", numFeat)
 
     if(search == '1'):
         searchName = "Forward Selection"
@@ -47,21 +52,69 @@ def getData(file):
                 dataRow.append(float(rawRow[j])) #convert scientific notation to float; REFERENCE: https://stackoverflow.com/questions/23636509/convert-string-in-scientific-notation-to-float
             # print(dataRow)
             data.append(dataRow)
-        # print(data)
+    # print(data[2][1:], "TEST")
+    # print(data[2][0], "TEST")
     return data
 
-def leaveOneOutCrossValidation(data, currentFeatureSet, featureToAdd):
-    acc = random.random()
-    return acc
+#k-fold cross validation
+def leaveOneOutCrossValidation(data, currentFeatureSet, featureToAdd, searchFlag):
+    numRows = len(data) #total num of objects in data set
+    numFeat = len(data[0])-1
+    # print("numRows:", numRows, ", numFeat:", numFeat)\
+
+    numberCorrectlyClassified = 0
+    currentFS = copy.copy(currentFeatureSet)
+    if(searchFlag):
+        currentFS.append(featureToAdd)
+        print(f"Current feature set with {featureToAdd} added:", currentFS)
+
+    #Perform k-fold cross validation
+    for i in range(numRows):
+        objectToClassify = data[i][1:] #only take the features; i is the object/row
+        classObjectToClassify = int(data[i][0])
+        
+        # print(f"Looping over i, at the {i+1} location.")
+        # print(f"The {i+1}th object is in class {classObjectToClassify}")
+        nearestNeighborDistance = float('inf')
+        nearestNeighborLocation = float('inf')
+        nearestNeighborLabel = -1
+
+        for k in range(numRows): #classify by comparing object i to every other object in the dataset
+            sum = 0
+            distance = 0
+            if(k!=i): #make sure not to be comparing the curr object i with itself
+
+                # print(f"Ask if {i+1} is the nearest neighbor of {k+1}")
+
+                #Calculating the Euclidean Distance between object i and object k using only the features in the current feature set
+                for j in range(len(currentFS)):
+                    featureNum = currentFS[j]
+                    sum += pow((data[i][featureNum] - data[k][featureNum]), 2)
+
+                distance = math.sqrt(sum)
+                if(distance < nearestNeighborDistance):
+                    nearestNeighborDistance = distance
+                    nearestNeighborLocation = k
+                    nearestNeighborLabel = int(data[k][0])
+
+        if(classObjectToClassify == nearestNeighborLabel):
+            numberCorrectlyClassified +=1
+    print(numberCorrectlyClassified)
+    accuracy = numberCorrectlyClassified/numRows
+    return accuracy
+
 
 def forwardSelectionSearch(data):
     numFeatures = len(data[0])
     # print(numFeatures-1)
 
     currentFeatureSet = []
+    bestFeatureSet = []
+    bestFeatureSetAccuracy = float('-inf')
    
+   #START SEARCH
     for i in range(1,numFeatures): #disregard the first column since it's not a feature but a class
-        print(f"On the {i}th level of the search tree.")
+        print(f"\nOn the {i}th level of the search tree.")
         featureToAdd = 0
         bestAccuracy = 0
         
@@ -69,18 +122,23 @@ def forwardSelectionSearch(data):
 
             if(k not in currentFeatureSet): #don't add a feature that's already in the current feature set
                 print(f"--Considering adding the {k} feature.")
-                accuracy = leaveOneOutCrossValidation(data, currentFeatureSet, k) #gets the accuracy if we were to add feature k to our current existing feature set
-
+                accuracy = leaveOneOutCrossValidation(data, currentFeatureSet, k, True) #gets the accuracy if we were to add feature k to our current existing feature set
+                
                 if(accuracy > bestAccuracy):
                     bestAccuracy = accuracy
+                    print(bestAccuracy, "BEST")
                     featureToAdd = k
+            # if(bestAccuracy > bestFeatureSetAccuracy):
+            #     bestFeatureSet = currentFeatureSet.append(k)
+            #     bestFeatureSetAccuracy = bestAccuracy
+            #     print(f"The best feature set is {bestFeatureSet} with an accuracy of {bestFeatureSetAccuracy}.")
         
 #level 1: currentFeatureSet = [4] ; level 2: currentFeatureSet = [4,5] 
             # feature = data[i][j]
         currentFeatureSet.append(featureToAdd)
-        print(f"On level {i}, I added feature {featureToAdd} to the current feature set.")
-        print(f"Current Feature Set at level {i}:", currentFeatureSet, "\n")
-
+        # print(f"On level {i}, I added feature {featureToAdd} to the current feature set.")
+        # print(f"Current Feature Set at level {i}:", currentFeatureSet, "\n")
+    print(bestAccuracy, "BESSTTIE")
 
 
 def backwardEliminationSearch(data):
@@ -100,19 +158,18 @@ def backwardEliminationSearch(data):
 
             if(k in currentFeatureSet): #check if a feature k is in the current feature set
                 print(f"--Considering removing the {k} feature.")
-                accuracy = leaveOneOutCrossValidation(data, currentFeatureSet, k)
+                accuracy = leaveOneOutCrossValidation(data, currentFeatureSet, k, False)
 
                 if(accuracy > bestAccuracy):
                     bestAccuracy = accuracy
                     featureToRemove = k
+                    print(bestAccuracy, "BEST")
         
 #level 1: currentFeatureSet = [4] ; level 2: currentFeatureSet = [4,5] 
             # feature = data[i][j]
         print(f"On level {i}, I removed feature {featureToRemove} from the current feature set of {currentFeatureSet}.")    
         currentFeatureSet.remove(featureToRemove)
         print(f"Current Feature Set at this level {i} after removing {featureToRemove}:", currentFeatureSet, "\n")
-
-
 
 
 
