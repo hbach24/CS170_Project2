@@ -3,31 +3,42 @@ import csv
 import random
 import copy
 import math
+import time
 
 def main():
-    print("Welcome to Hannah Bach's Feature Selection Algorithm.")
-    search = input("Type the number of the algorithm you want to run: \
-    \nEnter '1' to use Forward Selection. \nEnter '2' to use Backward Elimination.\n")
-    # search  = 0 #delete this later and uncomment lines 6&7
-
-    # file = "Small_Data_6.txt"
-    file = "Small_Data_88.txt"
+    file = "Small_Data_6.txt"
+    # file = "Small_Data_88.txt"
     # file = "Small_Data_96.txt"
     # file = "Large_Data_6.txt" #41 columns, 40 feature columns
     # file = "Large_Data_21.txt"
     # file = "Large_Data_96.txt"
-    data = getData(file)
-    # numRows = len(data)
-    # numFeat = len(data[0])-1
-    # print("numRows:", numRows, ", numFeat:", numFeat)
 
+
+    print("Welcome to Hannah Bach's Feature Selection Algorithm.")
+    # file = input("Type in the name of the file to test: ")
+    data = getData(file)
+    numRows = len(data)
+    numFeat = len(data[0])-1
+    print(f"This dataset has {numFeat} features (not including the class attribute), with {numRows} objects.\n")
+
+    search = input("Type the number of the algorithm you want to run: \
+    \n\tEnter '1' to use Forward Selection. \n\tEnter '2' to use Backward Elimination.\n")
+    # search  = 0 #delete this later and uncomment lines 6&7
+
+    print("BEGINNING SEARCH.")    
     if(search == '1'):
         searchName = "Forward Selection"
+        duration = time.time()
         forwardSelectionSearch(data,file)
+        t1 = time.time() - duration
+        print("Time elapsed: ", round(t1,4), "seconds")
+    
+
 
     if(search == '2'):
         searchName = "Backward Elimination"
         backwardEliminationSearch(data)
+
 
 #REFERENCE: https://stackoverflow.com/questions/16448912/counting-number-of-columns-in-text-file-with-python
 def getData(file):
@@ -66,7 +77,7 @@ def leaveOneOutCrossValidation(data, currentFeatureSet, featureToAdd, searchFlag
     currentFS = copy.copy(currentFeatureSet)
     if(searchFlag):
         currentFS.append(featureToAdd)
-        print(f"Current feature set with {featureToAdd} added:", currentFS)
+        # print(f"Current feature set with {featureToAdd} added:", currentFS)****
 
     #Perform k-fold cross validation
     for i in range(numRows):
@@ -114,30 +125,35 @@ def forwardSelectionSearch(data,file):
    
    #START SEARCH
     for i in range(1,numFeatures): #disregard the first column since it's not a feature but a class
-        print(f"\nOn the {i}th level of the search tree.")
+        # print(f"\nOn the {i}th level of the search tree.")
         featureToAdd = 0
         bestAccuracy = 0
         
         for k in range(1,numFeatures):
 
             if(k not in currentFeatureSet): #don't add a feature that's already in the current feature set
-                print(f"--Considering adding the {k} feature.")
+                # print(f"--Considering adding the {k} feature.") ****
                 accuracy = leaveOneOutCrossValidation(data, currentFeatureSet, k, True) #gets the accuracy if we were to add feature k to our current existing feature set
+                tempFeatureSet = copy.copy(currentFeatureSet)
+                tempFeatureSet.append(k)
+                print(f"Using feature(s) {tempFeatureSet} accuracy is {round(accuracy*100, 2)}%")
                 
                 if(accuracy > bestAccuracy):
                     bestAccuracy = accuracy
                     featureToAdd = k
-                    print(bestAccuracy, f"BEST at LEVEL {i}")
+                    # print(bestAccuracy, f"BEST at LEVEL {i}")
 
         currentFeatureSet.append(featureToAdd) #<-- picks best feature set for each level
-
+        print(f"Feature set {currentFeatureSet} was best, accuracy is {round(bestAccuracy*100, 2)}%\n")
+        
         if(bestAccuracy > bestFeatureSetAccuracy): #<-- finds best feature set from all levels
             bestFeatureSetOverall = copy.copy(currentFeatureSet)
             bestFeatureSetAccuracy = bestAccuracy
 
         # print(f"On level {i}, I added feature {featureToAdd} to the current feature set.")
         # print(f"Current Feature Set at level {i}:", currentFeatureSet, "\n")
-    print(f"\nThe best feature set is {bestFeatureSetOverall} with an accuracy of {bestFeatureSetAccuracy} for dataset {file}.")
+    print("\nFinished Search!!!")
+    print(f"The best feature set is {bestFeatureSetOverall} with an accuracy of {round(bestFeatureSetAccuracy*100, 2)}% for dataset {file}.")
 
 
 def backwardEliminationSearch(data):
