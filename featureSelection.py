@@ -11,7 +11,7 @@ def main():
     # file = "Small_Data_96.txt"
     # file = "Large_Data_6.txt" #41 columns, 40 feature columns
     # file = "Large_Data_21.txt"
-    file = "Large_Data_96.txt"
+    # file = "Large_Data_96.txt"
 
 
     print("Welcome to Hannah Bach's Feature Selection Algorithm.")
@@ -40,7 +40,6 @@ def main():
         print("Time elapsed: ", round(t1,4), "seconds")
     
 
-
     if(search == '2'):
         searchName = "Backward Elimination"
         duration = time.time()
@@ -56,9 +55,6 @@ def getData(file):
         numFeatures = len(first_row) - 1 #subtract 1 to remove the first column representing the classes
         numRows = len(f.readlines())+1
 
-        # print("Number of features:", numFeatures) #checking
-        # print("Number of rows:", numRows)
-
         f.seek(3) #https://www.geeksforgeeks.org/python-seek-function/; set an offset of 3 since data starts at index 3 for each line
         data = []
         
@@ -67,34 +63,23 @@ def getData(file):
             # print(rawRow)
             dataRow = []
             for j in range(len(rawRow)):
-                # print(rawRow[j])
                 dataRow.append(float(rawRow[j])) #convert scientific notation to float; REFERENCE: https://stackoverflow.com/questions/23636509/convert-string-in-scientific-notation-to-float
-            # print(dataRow)
             data.append(dataRow)
-    # print(data[2][1:], "TEST")
-    # print(data[2][0], "TEST")
     return data
 
 #k-fold cross validation
 def leaveOneOutCrossValidation(data, currentFeatureSet, featureToAdd, searchFlag):
     numRows = len(data) #total num of objects in data set
     numFeat = len(data[0])-1
-    # print("numRows:", numRows, ", numFeat:", numFeat)\
 
     numberCorrectlyClassified = 0
     currentFS = copy.copy(currentFeatureSet)
 
     if(searchFlag == True): #forward selection search
         currentFS.append(featureToAdd)
-        # print("Only for forward selection search!")
+
     elif(searchFlag == False): #backward elimination search
         currentFS.remove(featureToAdd)
-
-        # print("Only for backward elimination search!")
-    # else:
-    #     print("just testing full feature set", searchFlag)
-        # print(currentFS, "curr")
-        # print(f"Current feature set with {featureToAdd} added:", currentFS)****
 
     #Perform k-fold cross validation
     for i in range(numRows):
@@ -111,7 +96,6 @@ def leaveOneOutCrossValidation(data, currentFeatureSet, featureToAdd, searchFlag
             sum = 0
             distance = 0
             if(k!=i): #make sure not to be comparing the curr object i with itself
-
                 # print(f"Ask if {i+1} is the nearest neighbor of {k+1}")
 
                 #Calculating the Euclidean Distance between object i and object k using only the features in the current feature set
@@ -127,7 +111,6 @@ def leaveOneOutCrossValidation(data, currentFeatureSet, featureToAdd, searchFlag
 
         if(classObjectToClassify == nearestNeighborLabel):
             numberCorrectlyClassified +=1
-    # print(numberCorrectlyClassified)
     accuracy = numberCorrectlyClassified/numRows
     return accuracy
 
@@ -158,7 +141,6 @@ def forwardSelectionSearch(data,file):
                 if(accuracy > bestAccuracy): #<-- picks best feature for each level
                     bestAccuracy = accuracy
                     featureToAdd = k
-                    # print(bestAccuracy, f"BEST at LEVEL {i}")
 
         currentFeatureSet.append(featureToAdd) #<-- picks best feature set for each level
         print(f"Feature set {currentFeatureSet} was best, accuracy is {round(bestAccuracy*100, 2)}%\n")
@@ -187,8 +169,6 @@ def backwardEliminationSearch(data,file):
     bestFeatureSetOverall = []
     bestFeatureSetAccuracy = leaveOneOutCrossValidation(data, tempFeatureSet, 0, -1) #need to consider the full set's accuracy before removing features
    
-
-    # bestAccuracy = leaveOneOutCrossValidation(data, tempFeatureSet, k, -1)
     print(f"Using feature(s) {tempFeatureSet} accuracy is {round(bestFeatureSetAccuracy*100, 2)}%")
     print(f"Feature set {tempFeatureSet} was best, accuracy is {round(bestFeatureSetAccuracy*100, 2)}%\n")
 
@@ -210,24 +190,17 @@ def backwardEliminationSearch(data,file):
                     print(f"Using feature(s) {tempFeatureSet} accuracy is {round(accuracy*100, 2)}%")
                     
                     if(accuracy > bestAccuracy):
-                        # print("Accuracy", accuracy)
                         bestAccuracy = accuracy
                         featureToRemove = k
-                    # print(bestAccuracy, f"BEST at LEVEL {i}")
 
         if(len(currentFeatureSet) != 1):
             currentFeatureSet.remove(featureToRemove)
             print(f"Feature set {currentFeatureSet} was best, accuracy is {round(bestAccuracy*100, 2)}%\n")
-        # print(f"On level {i}, I removed feature {featureToRemove} from the current feature set of {currentFeatureSet}.") 
-        # print(f"Current Feature Set at this level {i} after removing {featureToRemove}:", currentFeatureSet, "\n")   
         
         if(bestAccuracy > bestFeatureSetAccuracy): #<-- finds best feature set from all levels
-            # print(bestAccuracy, bestFeatureSetAccuracy, "CHECKING")
             bestFeatureSetOverall = copy.copy(currentFeatureSet)
             bestFeatureSetAccuracy = bestAccuracy
 
-        # print(f"On level {i}, I added feature {featureToAdd} to the current feature set.")
-        # print(f"Current Feature Set at level {i}:", currentFeatureSet, "\n")
     print("Finished Search!!!")
     print(f"The best feature set is {bestFeatureSetOverall} with an accuracy of {round(bestFeatureSetAccuracy*100, 2)}% for dataset {file}.")
 
