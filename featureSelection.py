@@ -179,8 +179,7 @@ def backwardEliminationSearch(data,file):
         bestAccuracy = 0
         for k in range(1,numFeatures):
 
-            if(k in currentFeatureSet): #don't add a feature that's already in the current feature set
-                # print(f"--Considering adding the {k} feature.") ****
+            if(k in currentFeatureSet): #don't remove a feature that's not in the current feature set
                 tempFeatureSet = copy.copy(currentFeatureSet)
                 tempFeatureSet.remove(k)
 
